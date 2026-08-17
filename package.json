@@ -1,0 +1,20 @@
+{
+  "name": "ecommerce-dead-letter-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/order_service.ts",
+    "demo": "tsx scripts/run_checkout.ts",
+    "test": "node --import tsx --test test/order_worker.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
