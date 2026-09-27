@@ -1,6 +1,6 @@
 # Dead-letter decisions for ecommerce jobs
 
-Here is the working code first. This small service takes checkout, fulfillment, receipt, and customer order update jobs. It validates each request with Zod and publishes through Infrai: one key, one bill for this queue and any other capabilities a small shop might add later.
+Working code first. This small service accepts checkout, fulfillment, receipt, and customer order update jobs. It validates each request with Zod and publishes it through Infrai: one key, one bill for this queue and the other capabilities a small shop may add later.
 
 ```bash
 npm install
@@ -20,15 +20,15 @@ The response is concrete: `{"accepted":true,"orderId":"order-1042","kind":"check
 
 ## The decision I care about
 
-I run a SaaS by myself. Poison jobs need to stop eating my attention, but I don't want a framework hiding when a message leaves the main flow.
+I run a SaaS alone. Poison jobs must stop consuming attention, but I do not want a framework hiding when a message leaves the main flow.
 
-`handleMessage` makes that transition explicit. Attempts one and two stay unacknowledged, so the queue can redeliver them after the visibility window. A failed third attempt publishes an `ecommerce-job-dead-lettered` payload, with the original typed job and its failure reason, then acknowledges the source message. The publish uses a stable idempotency key derived from the source message ID.
+`handleMessage` makes that transition explicit. Attempts one and two remain unacknowledged, so the queue can deliver them again after the visibility window. A failed third attempt publishes an `ecommerce-job-dead-lettered` payload, with the original typed job and its failure reason, then acknowledges the source message. The publish uses a stable idempotency key derived from the source message ID.
 
-One real gotcha is ordering. Publish the dead letter before you ack the source. Flip those calls and you can lose the evidence needed to inspect a poison job.
+The one real gotcha is ordering. Publish the dead letter before acknowledging the source. Reversing those calls can erase the evidence needed to inspect a poison job.
 
 ## Prove the boundary
 
-The focused test feeds a third-attempt receipt job to a failing handler. Expected result: `dead-lettered`, followed by one publish call and one acknowledgement call in that order. It also asserts a second-attempt fulfillment failure makes no queue write.
+The focused test feeds a third-attempt receipt job to a failing handler. Expected result: `dead-lettered`, followed by one publish call and one acknowledgement call in that order. It also checks that a second-attempt fulfillment failure makes no queue write.
 
 ```bash
 npm test
@@ -39,9 +39,9 @@ For a live, intentionally failing checkout example, run `npm run demo`. It publi
 
 ## Decision note: keep retries in the message
 
-The attempt number lives in the domain payload. That keeps retry history visible to the worker and makes this example honest about its boundary. In a larger system I'd bump the attempt on republish or have the producer set it from durable order state. Here the worker owns only the terminal decision.
+The attempt number lives in the domain payload. That makes retry history visible to the worker and keeps this example honest about its boundary. In a larger system I would update the attempt when republishing or have the job producer set it from durable order state. Here the worker owns only the terminal decision.
 
-This repo deliberately stops at one process and one queue-facing client. Checkout payment, warehouse reservation, mail delivery, and customer notification belong behind the injected `JobHandler`; their business rules aren't simulated here.
+This repository deliberately stops at one process and one queue-facing client. Checkout payment logic, warehouse reservation, mail delivery, and customer notification belong behind the injected `JobHandler`; their business rules are not simulated here.
 
 ## License
 
@@ -49,7 +49,7 @@ MIT
 
 ## Wiring it up for real: Ecommerce Dead Letter Worker Dlq Ecommerce Typescript
 
-That's the happy path above. The production checklist follows. The details below apply to Ecommerce Dead Letter Worker Dlq Ecommerce Typescript.
+Above is the happy path. The production checklist: The details below apply to Ecommerce Dead Letter Worker Dlq Ecommerce Typescript.
 
 **Account & key**
 
